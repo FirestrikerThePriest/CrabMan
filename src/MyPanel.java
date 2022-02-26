@@ -21,6 +21,8 @@ public class MyPanel extends JPanel implements ActionListener {
     int level = 0;
     int subLevel = 0;
 
+    double distance;
+
     boolean auf = false;
     boolean move = true;
     boolean opponentMove = true;
@@ -44,6 +46,7 @@ public class MyPanel extends JPanel implements ActionListener {
         pacman.setAngle(2);
         pacman.setMovesX(0, 0);
         pacman.setMovesY(0, 9);
+        pacman.setSpeed(9);
 
         maze.generate();
         maze.shuffleTheChosenOnes(100);
@@ -143,6 +146,18 @@ public class MyPanel extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) { // Im Prinzip Main Loop, der die Logik ausführt und dann nach jeder iteration die paint methode aufruft
+        // ANDERES WICHTIG
+
+        // Nachschauen, ob es noch theChosenOnes gibt, um eine ArrayIndexOutOfBound Exception zu vermeiden
+        if (subLevel == maze.getTheChosenOnesCounter()) {
+            noMoreChosenOnes = true;
+            System.out.println("Alle Chosen Ones wurden gefunden!");
+        }
+
+        // ENDE ANDERES WICHTIG
+
+        // PACMAN
+
         // Pacman läuft nicht in Wände
         try {
             if (feld.isFieldWall(pacman.getAngle(), pacman.getX() - 1, pacman.getY() - 1)) {
@@ -152,10 +167,8 @@ public class MyPanel extends JPanel implements ActionListener {
             move = false;
         }
 
-        // PACMAN
-
         // Pacman bewegen
-        if (frameCount % 9 == 0 && move) {
+        if (frameCount % pacman.getSpeed() == 0 && move) {
             switch (pacman.getAngle()) {
                 case (1) -> pacman.moveUp(1);
                 case (2) -> pacman.moveRight(1);
@@ -172,14 +185,14 @@ public class MyPanel extends JPanel implements ActionListener {
         }
 
         // auf the chosen ones reagieren
-        if (maze.getTheChosenOneX(subLevel) == pacman.getX() - 1 && maze.getTheChosenOneY(subLevel) == pacman.getY() - 1) {
-            feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
-            System.out.println("A ChosenOne was eaten by Pacman");
+        if (!noMoreChosenOnes) {
+            if (maze.getTheChosenOneX(subLevel) == pacman.getX() - 1 && maze.getTheChosenOneY(subLevel) == pacman.getY() - 1) {
+                feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
+                System.out.println("A ChosenOne was eaten by Pacman");
 
-            pacman.setSuperMode(true);
-
+                pacman.setSuperMode(true);
+            }
         }
-
         // Münzen fressen
         if (feld.isFieldCoin(0, pacman.getX() - 1, pacman.getY() - 1)) {
             feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
@@ -197,7 +210,7 @@ public class MyPanel extends JPanel implements ActionListener {
 
         // Gegner wird bewegt
         if (opponent.getVisible() && opponentMove) {
-            if (frameCount % 10 == 0) {
+            if (frameCount % opponent.getSpeed() == 0) {
                 try {
                     opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()));
                     //System.out.println("Opponent moved to: X: " + pacman.getMovesX(opponent.getMovesDid()) + " Y: " + pacman.getMovesY(opponent.getMovesDid()));
@@ -215,7 +228,7 @@ public class MyPanel extends JPanel implements ActionListener {
         }
 
         // Gegner tötet oder wird gefressen
-        if (opponent.getX() == pacman.getX() && opponent.getY() == pacman.getY()) {
+        if (opponent.getX() == pacman.getX() && opponent.getY() == pacman.getY() && opponentMove && opponent.getVisible()) {
             if (!pacman.getSuperMode()) {
                 // Gegner frisst.
                 // aktionen um den GameOver screen zu erzeugen
@@ -244,7 +257,6 @@ public class MyPanel extends JPanel implements ActionListener {
                     }
                     System.out.println("Sollte jetzt eigentlich beim TheChosenOne sein der gerade von Pacman gefressen wurde");
 
-                    pacman.setMovesDid(0);
                     pacman.setSuperMode(false);
 
                     subLevel++;
@@ -258,16 +270,19 @@ public class MyPanel extends JPanel implements ActionListener {
             }
         }
 
-        // ENDE GEGNER
+        // Gegner lässt keinen zu großen Vorsprung zu
+        distance = pacman.getMovesDid()-opponent.movesDid;
 
-        // ANDERES
-
-        // Nachschauen, ob es noch theChosenOnes gibt, um eine ArrayIndexOutOfBound Exception zu vermeiden
-        if (subLevel == maze.getTheChosenOnesCounter()) {
-            noMoreChosenOnes = true;
-            System.out.println("Alle Chosen Ones wurden gefunden!");
+        if (distance < 55) {
+            opponent.setSpeed((int) (11 - (distance / 5)));
+        }
+        else {
+            opponent.setSpeed(1);
         }
 
+        // ENDE GEGNER
+
+        // ANDERES NICHT SO WICHTIG
         frameCount++;
         repaint();
     }
