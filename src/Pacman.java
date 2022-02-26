@@ -5,20 +5,17 @@ import java.util.ArrayList;
  * außerdem ist er Pacman der sich später als spielfigur im Labyrinth
  * bewegt. Sei nett zu ihm :)
  */
-public class Pacman {
+public class Pacman extends Bot {
     ArrayList<Integer> movesX = new ArrayList<>();
     ArrayList<Integer> movesY = new ArrayList<>();
 
     int angle; // 0 = hoch; 1 = rechts; 2 = unten; 3 = links
-    int y;
-    int x;
-    int movesDid = 0;
 
     boolean superMode = false;
 
+    // Konstruktor
     Pacman(int x, int y) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
 
         movesX.add(0);
         movesY.add(8);
@@ -26,16 +23,13 @@ public class Pacman {
         angle = 0;
     }
 
-    public void add(int x, int y) {
-        this.x += x;
-        this.y += y;
-    }
-
+    // Methode fürs Backtracking
     public void moveBackTo(int where) {
         x = movesX.get(where);
         y = movesY.get(where);
     }
 
+    // Methoden zum Horizontalen oder Vertikalen Bewegen
     public void moveUp(int move) {
         movesX.add(x);
         movesY.add(y);
@@ -65,6 +59,8 @@ public class Pacman {
         movesDid++;
     }
 
+    // Gibt die X/Y Koordinaten des Felds eins Horizontal oder Vertikal daneben aus.
+    // Die Kandidaten zum Labyrinth generieren
     public int kandidatPositionX(int kandidat) {
         int newX = x;
 
@@ -75,7 +71,6 @@ public class Pacman {
 
         return newX;
     }
-
     public int kandidatenPositionY(int kandidat) {
         int newY = y;
 
@@ -87,18 +82,9 @@ public class Pacman {
         return newY;
     }
 
-    // Die Getter Methoden (geben den Wert der Variable aus)
-    int getX() {
-        return x;
-    }
-    int getY() {
-        return y;
-    }
+    // Getter Methoden
     int getAngle() {
         return angle;
-    }
-    int getMovesDid() {
-        return movesDid;
     }
     int getMovesX(int index) {
         return movesX.get(index);
@@ -106,22 +92,19 @@ public class Pacman {
     int getMovesY(int index) {
         return movesY.get(index);
     }
+    int getLengthMovesX() {
+        return movesX.size();
+    }
+    int getLengthMovesY() {
+        return movesY.size();
+    }
     boolean getSuperMode() {
         return superMode;
     }
 
-    // Die Setter Methoden (setzen die Variable auf einen beliebigen Wert, der eine Natürliche zahl ist)
-    void setX(int x) {
-        this.x = x;
-    }
-    void setY(int y) {
-        this.y = y;
-    }
+    // Setter Methoden
     void setAngle(int angle) {
         this.angle = angle;
-    }
-    void setMovesDid(int movesDid) {
-        this.movesDid = movesDid;
     }
     void setMovesX(int index, int moveX) {
         movesX.set(index, moveX);
@@ -132,5 +115,4 @@ public class Pacman {
     void setSuperMode(boolean superMode) {
         this.superMode = superMode;
     }
-
 }

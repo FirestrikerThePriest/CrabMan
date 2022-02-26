@@ -3,11 +3,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class MyPanel extends JPanel implements ActionListener{
+public class MyPanel extends JPanel implements ActionListener {
     final int LABYRINTH_GRÖßE = 29;
     final int ZELLEN_GRÖßE = 30;
-    final int PANEL_WIDTH = ZELLEN_GRÖßE*(LABYRINTH_GRÖßE+2);  // 930
-    final int PANEL_HEIGHT = ZELLEN_GRÖßE*(LABYRINTH_GRÖßE+2); // 930
+    final int PANEL_WIDTH = ZELLEN_GRÖßE * (LABYRINTH_GRÖßE + 2);  // 930
+    final int PANEL_HEIGHT = ZELLEN_GRÖßE * (LABYRINTH_GRÖßE + 2); // 930
 
     Timer timer;
     Feld feld;
@@ -26,6 +26,7 @@ public class MyPanel extends JPanel implements ActionListener{
     boolean opponentMove = true;
     boolean gameOver = false;
     boolean noMoreChosenOnes = false;
+    boolean opponentWasAlreadyAtTheChosenOne = false;
 
     MyPanel() {
         this.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
@@ -38,7 +39,7 @@ public class MyPanel extends JPanel implements ActionListener{
         feld = new Feld(LABYRINTH_GRÖßE);
         maze = new Maze();
         pacman = new Pacman(0, 9);
-        opponent = new Opponent(0,9, false);
+        opponent = new Opponent(0, 9, false);
 
         pacman.setAngle(2);
         pacman.setMovesX(0, 0);
@@ -126,11 +127,12 @@ public class MyPanel extends JPanel implements ActionListener{
             g2D.drawString("Punkte: " + punkte, 10, 25);
 
             // Opponent malen
-            g2D.setPaint(Color.red);
-            g2D.fillOval(opponent.getX()*ZELLEN_GRÖßE+3, opponent.getY()*ZELLEN_GRÖßE+3, 24, 24);
+            if (opponent.getVisible()) {
+                g2D.setPaint(Color.red);
+                g2D.fillOval(opponent.getX() * ZELLEN_GRÖßE + 3, opponent.getY() * ZELLEN_GRÖßE + 3, 24, 24);
+            }
 
-        }
-        else {
+        } else {
             g2D.setPaint(Color.red);
             g2D.setFont(new Font("MV Boli", Font.BOLD, 100));
 
@@ -146,13 +148,14 @@ public class MyPanel extends JPanel implements ActionListener{
             if (feld.isFieldWall(pacman.getAngle(), pacman.getX() - 1, pacman.getY() - 1)) {
                 move = false;
             }
-        }
-        catch (ArrayIndexOutOfBoundsException exception) {
-            move=false;
+        } catch (ArrayIndexOutOfBoundsException exception) {
+            move = false;
         }
 
+        // PACMAN
+
         // Pacman bewegen
-        if (frameCount%10 == 0 && move) {
+        if (frameCount % 9 == 0 && move) {
             switch (pacman.getAngle()) {
                 case (1) -> pacman.moveUp(1);
                 case (2) -> pacman.moveRight(1);
@@ -160,27 +163,32 @@ public class MyPanel extends JPanel implements ActionListener{
                 case (4) -> pacman.moveLeft(1);
             }
         }
+
         // Mund von Pacman auf und zu machen
-        if (frameCount%6 == 0) {
+        if (frameCount % 6 == 0) {
             auf = false;
-        }
-        else if (frameCount%3 == 0){
+        } else if (frameCount % 3 == 0) {
             auf = true;
         }
 
-        // Münzen fressen
-        if (feld.isFieldCoin(0, pacman.getX()-1, pacman.getY()-1)) {
-            feld.clearField(0, pacman.getX()-1, pacman.getY()-1);
-            punkte++;
-        }
-
         // auf the chosen ones reagieren
-        if (feld.isFieldTheChosenOne(0, pacman.getX()-1, pacman.getY()-1)) {
-            feld.clearField(0, pacman.getX()-1, pacman.getY()-1);
+        if (maze.getTheChosenOneX(subLevel) == pacman.getX() - 1 && maze.getTheChosenOneY(subLevel) == pacman.getY() - 1) {
+            feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
+            System.out.println("A ChosenOne was eaten by Pacman");
 
             pacman.setSuperMode(true);
 
         }
+
+        // Münzen fressen
+        if (feld.isFieldCoin(0, pacman.getX() - 1, pacman.getY() - 1)) {
+            feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
+            punkte++;
+        }
+
+        // ENDE PACMAN
+
+        // GEGNER
 
         // Wird Gegner angezeigt und beginnt sich zu bewegen
         if (pacman.getMovesDid() > 3) {
@@ -189,43 +197,75 @@ public class MyPanel extends JPanel implements ActionListener{
 
         // Gegner wird bewegt
         if (opponent.getVisible() && opponentMove) {
-            if (frameCount%11 == 0) {
+            if (frameCount % 10 == 0) {
                 try {
                     opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()));
                     //System.out.println("Opponent moved to: X: " + pacman.getMovesX(opponent.getMovesDid()) + " Y: " + pacman.getMovesY(opponent.getMovesDid()));
-                }
-                catch (Exception exception) {
+                } catch (Exception exception) {
                     System.out.println("Error");
                     opponent.goTo(pacman.getX(), pacman.getY());
                 }
             }
         }
 
+        // War Gegner schon bei TheChosenOne
+        if (opponent.getX() == maze.getTheChosenOneX(subLevel) + 1 && opponent.getY() == maze.getTheChosenOneY(subLevel) + 1) {
+            opponentWasAlreadyAtTheChosenOne = true;
+            System.out.println("Gegner ist bei TheChosenOne");
+        }
+
         // Gegner tötet oder wird gefressen
         if (opponent.getX() == pacman.getX() && opponent.getY() == pacman.getY()) {
-            System.out.println("Getroffen");
             if (!pacman.getSuperMode()) {
+                // Gegner frisst.
                 // aktionen um den GameOver screen zu erzeugen
                 gameOver = true;
                 move = false;
                 opponentMove = false;
-            }
-            else {
-                punkte += 50;
-                pacman.setSuperMode(false);
+            } else {
+                // Pacman frisst.
+                if (!noMoreChosenOnes) {
+                    timer.stop();
 
-                while (opponent.getX() != maze.getTheChosenOneX(subLevel) && opponent.getY() != maze.getTheChosenOneY(subLevel)) {
-                    opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()));
+                    while (!(opponent.getX() == maze.getTheChosenOneX(subLevel)+1 && opponent.getY() == maze.getTheChosenOneY(subLevel)+1)) {
+
+                        if (pacman.getLengthMovesX()-1 >= opponent.getMovesDid() || pacman.getLengthMovesY()-1 >= opponent.getMovesDid()) {
+                            opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()));
+                        }
+                        else {
+                            opponentWasAlreadyAtTheChosenOne = true;
+                        }
+
+                        if (opponentWasAlreadyAtTheChosenOne) {
+                            opponent.setMovesDid(opponent.getMovesDid() - 2);
+                        }
+                        System.out.println("Iteration");
+
+                    }
+                    System.out.println("Sollte jetzt eigentlich beim TheChosenOne sein der gerade von Pacman gefressen wurde");
+
+                    pacman.setMovesDid(0);
+                    pacman.setSuperMode(false);
+
+                    subLevel++;
+                    opponentWasAlreadyAtTheChosenOne = false;
+                    timer.start();
+                } else {
+                    opponent.setVisible(false);
+                    opponentMove = false;
                 }
-
-                subLevel++;
 
             }
         }
 
+        // ENDE GEGNER
+
+        // ANDERES
+
         // Nachschauen, ob es noch theChosenOnes gibt, um eine ArrayIndexOutOfBound Exception zu vermeiden
         if (subLevel == maze.getTheChosenOnesCounter()) {
             noMoreChosenOnes = true;
+            System.out.println("Alle Chosen Ones wurden gefunden!");
         }
 
         frameCount++;
@@ -235,6 +275,7 @@ public class MyPanel extends JPanel implements ActionListener{
     public void setPacmanAngle(int pacmanAngle) {
         pacman.setAngle(pacmanAngle);
     }
+
     public void setMove(boolean newMoveValue) {
         move = newMoveValue;
     }
