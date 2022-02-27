@@ -11,7 +11,7 @@ public class MyFrame extends JFrame implements KeyListener {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         this.setVisible(true);
-        this.setLocationRelativeTo(null);
+        this.setLocation(600, 100);
 
         panel = new MyPanel();
 
@@ -31,20 +31,29 @@ public class MyFrame extends JFrame implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        panel.setMove(true);
-        switch (e.getKeyCode()) {
-            case (38):
-            case (87): panel.setPacmanAngle(1);
-            break;
-            case (39):
-            case (68): panel.setPacmanAngle(2);
-            break;
-            case (40):
-            case (83): panel.setPacmanAngle(3);
-            break;
-            case (37):
-            case (65): panel.setPacmanAngle(4);
-            break;
+        if (panel.isControllingEnabled()) {
+            panel.setMove(true);
+            switch (e.getKeyCode()) {
+                case (38):
+                case (87):
+                    panel.setPacmanAngle(1);
+                    break;
+                case (39):
+                case (68):
+                    panel.setPacmanAngle(2);
+                    break;
+                case (40):
+                case (83):
+                    panel.setPacmanAngle(3);
+                    break;
+                case (37):
+                case (65):
+                    panel.setPacmanAngle(4);
+                    break;
+            }
+        }
+        else {
+            panel.setPacmanAngle(3);
         }
     }
 

@@ -11,7 +11,7 @@ public class Maze {
     int theChosenOnesCounter = 0;
 
     public void generate() {
-        System.out.println("Beginning generate");
+        //System.out.println("Beginning generate"); zur Überprüfung der Funktion
 
         Pacman bot = new Pacman(1, 8);
         Feld feld = new Feld(LABYRINTH_GRÖßE);
@@ -30,6 +30,8 @@ public class Maze {
 
         boolean done = false;
         boolean backtracking = false;
+
+        theChosenOnesCounter = 0;
 
         //Setzt jede Zelle auf Wand
         for (int x = 0; x < LABYRINTH_GRÖßE; x++) {
@@ -119,10 +121,10 @@ public class Maze {
                 feld.setVisited(0, bot.getX(), bot.getY(), true);
 
                 if (!backtracking && movesWithoutBacktracking > 3) {
-                    random = (int) (Math.random()*3+1);
+                    random = (int) (Math.random()*30+1);
                     if (random == 1) {
                         feld.setFieldTheChosenOne(0, bot.getX(), bot.getY());
-                        System.out.println("a chosen one!");
+                        System.out.println("a chosen one!"); //zur Überprüfung der Funktion
 
                         theChosenOneX.add(theChosenOnesCounter, bot.getX());
                         theChosenOneY.add(theChosenOnesCounter, bot.getY());
@@ -148,7 +150,7 @@ public class Maze {
             kandidatenNummer = 0;
         }
 
-        System.out.println("finished Generating");
+        //System.out.println("finished Generating"); zur Überprüfung der Funktion
     }
 
     public void shuffleTheChosenOnes(int NumberOfShuffles) {
@@ -158,17 +160,22 @@ public class Maze {
         int zwischenSpeicherY;
 
         for (int i = 0; i < NumberOfShuffles; i++) {
-            randomIndexOne = (int) (Math.random()*theChosenOnesCounter);
-            randomIndexTwo = (int) (Math.random()*theChosenOnesCounter);
+            if (!(theChosenOnesCounter <= 0)) {
+                randomIndexOne = (int) (Math.random() * theChosenOnesCounter);
+                randomIndexTwo = (int) (Math.random() * theChosenOnesCounter);
 
-            zwischenSpeicherX = theChosenOneX.get(randomIndexOne);
-            zwischenSpeicherY = theChosenOneY.get(randomIndexOne);
+                zwischenSpeicherX = theChosenOneX.get(randomIndexOne);
+                zwischenSpeicherY = theChosenOneY.get(randomIndexOne);
 
-            theChosenOneX.set(randomIndexOne, theChosenOneX.get(randomIndexTwo));
-            theChosenOneY.set(randomIndexOne, theChosenOneY.get(randomIndexTwo));
+                theChosenOneX.set(randomIndexOne, theChosenOneX.get(randomIndexTwo));
+                theChosenOneY.set(randomIndexOne, theChosenOneY.get(randomIndexTwo));
 
-            theChosenOneX.set(randomIndexTwo, zwischenSpeicherX);
-            theChosenOneY.set(randomIndexTwo, zwischenSpeicherY);
+                theChosenOneX.set(randomIndexTwo, zwischenSpeicherX);
+                theChosenOneY.set(randomIndexTwo, zwischenSpeicherY);
+            }
+            else {
+                generate();
+            }
         }
     }
 

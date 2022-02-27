@@ -36,6 +36,8 @@ public class Pacman extends Bot {
 
         add(0, -move);
         movesDid++;
+
+        printPosition();
     }
     public void moveRight(int move) {
         movesX.add(x);
@@ -43,6 +45,8 @@ public class Pacman extends Bot {
 
         add(move, 0);
         movesDid++;
+
+        printPosition();
     }
     public void moveDown(int move) {
         movesX.add(x);
@@ -50,6 +54,8 @@ public class Pacman extends Bot {
 
         add(0, move);
         movesDid++;
+
+        printPosition();
     }
     public void moveLeft(int move) {
         movesX.add(x);
@@ -57,6 +63,8 @@ public class Pacman extends Bot {
 
         add(-move, 0);
         movesDid++;
+
+        printPosition();
     }
 
     // Gibt die X/Y Koordinaten des Felds eins Horizontal oder Vertikal daneben aus.
@@ -80,6 +88,12 @@ public class Pacman extends Bot {
         }
 
         return newY;
+    }
+
+    // Printed die Position von Pacman in die Konsole
+    public void printPosition() {
+        //System.out.println("Pacman ist bei X: " + x + " und Y: " + y + " Sein Angle ist: " + angle);
+        // Zur Überprüfung der Funktionsweise
     }
 
     // Getter Methoden

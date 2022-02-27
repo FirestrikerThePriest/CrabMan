@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,6 +30,8 @@ public class MyPanel extends JPanel implements ActionListener {
     boolean gameOver = false;
     boolean noMoreChosenOnes = false;
     boolean opponentWasAlreadyAtTheChosenOne = false;
+    boolean canGoToNextLevel = false;
+    boolean controllingEnabled = true;
 
     MyPanel() {
         this.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
@@ -52,6 +55,7 @@ public class MyPanel extends JPanel implements ActionListener {
         maze.shuffleTheChosenOnes(100);
     }
 
+    @Override
     public void paint(Graphics g) {
         super.paint(g);
 
@@ -140,18 +144,24 @@ public class MyPanel extends JPanel implements ActionListener {
             g2D.setFont(new Font("MV Boli", Font.BOLD, 100));
 
             g2D.drawString("GAME OVER!", 130, 470);
+
+            g2D.setFont(new Font("Calibri", Font.PLAIN, 30));
+            g2D.setPaint(Color.yellow);
+
+            g2D.drawString("Du hast " + punkte + " Punkte erreicht", 200, 550);
         } // Game Over screen
 
     } // Malt
 
+    // Im Prinzip Main Loop, der die Logik ausführt und dann nach jeder iteration die paint methode aufruft
     @Override
-    public void actionPerformed(ActionEvent e) { // Im Prinzip Main Loop, der die Logik ausführt und dann nach jeder iteration die paint methode aufruft
+    public void actionPerformed(ActionEvent e) {
+
         // ANDERES WICHTIG
 
         // Nachschauen, ob es noch theChosenOnes gibt, um eine ArrayIndexOutOfBound Exception zu vermeiden
         if (subLevel == maze.getTheChosenOnesCounter()) {
             noMoreChosenOnes = true;
-            System.out.println("Alle Chosen Ones wurden gefunden!");
         }
 
         // ENDE ANDERES WICHTIG
@@ -159,12 +169,14 @@ public class MyPanel extends JPanel implements ActionListener {
         // PACMAN
 
         // Pacman läuft nicht in Wände
-        try {
-            if (feld.isFieldWall(pacman.getAngle(), pacman.getX() - 1, pacman.getY() - 1)) {
+        if (controllingEnabled) {
+            try {
+                if (feld.isFieldWall(pacman.getAngle(), pacman.getX() - 1, pacman.getY() - 1)) {
+                    move = false;
+                }
+            } catch (ArrayIndexOutOfBoundsException exception) {
                 move = false;
             }
-        } catch (ArrayIndexOutOfBoundsException exception) {
-            move = false;
         }
 
         // Pacman bewegen
@@ -188,15 +200,18 @@ public class MyPanel extends JPanel implements ActionListener {
         if (!noMoreChosenOnes) {
             if (maze.getTheChosenOneX(subLevel) == pacman.getX() - 1 && maze.getTheChosenOneY(subLevel) == pacman.getY() - 1) {
                 feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
-                System.out.println("A ChosenOne was eaten by Pacman");
+                //System.out.println("A ChosenOne was eaten by Pacman"); zur Überprüfung der Funktion
 
                 pacman.setSuperMode(true);
             }
         }
+
         // Münzen fressen
-        if (feld.isFieldCoin(0, pacman.getX() - 1, pacman.getY() - 1)) {
-            feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
-            punkte++;
+        if (controllingEnabled) {
+            if (feld.isFieldCoin(0, pacman.getX() - 1, pacman.getY() - 1)) {
+                feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
+                punkte++;
+            }
         }
 
         // ENDE PACMAN
@@ -222,51 +237,50 @@ public class MyPanel extends JPanel implements ActionListener {
         }
 
         // War Gegner schon bei TheChosenOne
-        if (opponent.getX() == maze.getTheChosenOneX(subLevel) + 1 && opponent.getY() == maze.getTheChosenOneY(subLevel) + 1) {
-            opponentWasAlreadyAtTheChosenOne = true;
-            System.out.println("Gegner ist bei TheChosenOne");
+        if (!noMoreChosenOnes) {
+            if (opponent.getX() == maze.getTheChosenOneX(subLevel) + 1 && opponent.getY() == maze.getTheChosenOneY(subLevel) + 1) {
+                opponentWasAlreadyAtTheChosenOne = true;
+                //System.out.println("Gegner ist bei TheChosenOne"); zur Überprüfung der Funktion
+            }
         }
 
         // Gegner tötet oder wird gefressen
-        if (opponent.getX() == pacman.getX() && opponent.getY() == pacman.getY() && opponentMove && opponent.getVisible()) {
-            if (!pacman.getSuperMode()) {
-                // Gegner frisst.
-                // aktionen um den GameOver screen zu erzeugen
-                gameOver = true;
-                move = false;
-                opponentMove = false;
-            } else {
-                // Pacman frisst.
-                if (!noMoreChosenOnes) {
-                    timer.stop();
-
-                    while (!(opponent.getX() == maze.getTheChosenOneX(subLevel)+1 && opponent.getY() == maze.getTheChosenOneY(subLevel)+1)) {
-
-                        if (pacman.getLengthMovesX()-1 >= opponent.getMovesDid() || pacman.getLengthMovesY()-1 >= opponent.getMovesDid()) {
-                            opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()));
-                        }
-                        else {
-                            opponentWasAlreadyAtTheChosenOne = true;
-                        }
-
-                        if (opponentWasAlreadyAtTheChosenOne) {
-                            opponent.setMovesDid(opponent.getMovesDid() - 2);
-                        }
-                        System.out.println("Iteration");
-
-                    }
-                    System.out.println("Sollte jetzt eigentlich beim TheChosenOne sein der gerade von Pacman gefressen wurde");
-
-                    pacman.setSuperMode(false);
-
-                    subLevel++;
-                    opponentWasAlreadyAtTheChosenOne = false;
-                    timer.start();
-                } else {
-                    opponent.setVisible(false);
+        if (controllingEnabled) {
+            if (opponent.getX() == pacman.getX() && opponent.getY() == pacman.getY() && opponentMove && opponent.getVisible()) {
+                if (!pacman.getSuperMode()) {
+                    // Gegner frisst.
+                    // aktionen um den GameOver screen zu erzeugen
+                    gameOver = true;
+                    move = false;
                     opponentMove = false;
-                }
+                } else {
+                    // Pacman frisst.
+                    if (!noMoreChosenOnes) {
+                        timer.stop();
 
+                        while (!(opponent.getX() == maze.getTheChosenOneX(subLevel) + 1 && opponent.getY() == maze.getTheChosenOneY(subLevel) + 1)) {
+
+                            if (pacman.getLengthMovesX() - 1 >= opponent.getMovesDid() || pacman.getLengthMovesY() - 1 >= opponent.getMovesDid()) {
+                                opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()));
+                            } else {
+                                opponentWasAlreadyAtTheChosenOne = true;
+                            }
+
+                            if (opponentWasAlreadyAtTheChosenOne) {
+                                opponent.setMovesDid(opponent.getMovesDid() - 2);
+                            }
+                            //System.out.println("Iteration"); zur Überprüfung der Funktion
+
+                        }
+                        // System.out.println("Sollte jetzt eigentlich beim TheChosenOne sein der gerade von Pacman gefressen wurde"); zur Überprüfung der Funktion
+
+                        pacman.setSuperMode(false);
+
+                        subLevel++;
+                        opponentWasAlreadyAtTheChosenOne = false;
+                        timer.start();
+                    }
+                }
             }
         }
 
@@ -283,14 +297,73 @@ public class MyPanel extends JPanel implements ActionListener {
         // ENDE GEGNER
 
         // ANDERES NICHT SO WICHTIG
+
+        // Alle ChosenOnes wurden gefressen
+        if (noMoreChosenOnes) {
+            opponent.setVisible(false);
+            opponentMove = false;
+
+            canGoToNextLevel = true;
+        }
+
+        // Ins nächste Level gehen
+
+        if (canGoToNextLevel) {
+            if (pacman.getX() == 1 && pacman.getY() == 9 && pacman.getAngle() == 4) {
+                controllingEnabled = false;
+                System.out.println("Go go go! go into da next level!");
+            }
+            if (pacman.getX() == -1 && pacman.getY() == 9) {
+                level++;
+                reset();
+            }
+            if (pacman.getX() == 1 && pacman.getY() == 9 && pacman.getAngle() == 2) {
+                controllingEnabled = true;
+                System.out.println("Controls enabled");
+            }
+        }
+
         frameCount++;
         repaint();
     }
 
+    public void reset() {
+        timer.restart();
+
+        feld = new Feld(LABYRINTH_GRÖßE);
+        pacman = new Pacman(0, 9);
+        opponent = new Opponent(0, 9, false);
+
+        pacman.setAngle(2);
+        pacman.setMovesX(0, 0);
+        pacman.setMovesY(0, 9);
+        pacman.setSpeed(9);
+
+        maze.generate();
+        maze.shuffleTheChosenOnes(100);
+
+        frameCount = 0;
+        subLevel = 0;
+
+        auf = false;
+        move = true;
+        opponentMove = true;
+        noMoreChosenOnes = false;
+        opponentWasAlreadyAtTheChosenOne = false;
+        canGoToNextLevel = false;
+
+        System.out.println("Reseted");
+    }
+
+    // Getter Methoden
+    public boolean isControllingEnabled() {
+        return controllingEnabled;
+    }
+
+    // Setter Methoden
     public void setPacmanAngle(int pacmanAngle) {
         pacman.setAngle(pacmanAngle);
     }
-
     public void setMove(boolean newMoveValue) {
         move = newMoveValue;
     }
