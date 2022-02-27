@@ -11,7 +11,7 @@ public class MyFrame extends JFrame implements KeyListener {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         this.setVisible(true);
-        this.setLocation(600, 100);
+        this.setLocation(600, 50);
 
         panel = new MyPanel();
 

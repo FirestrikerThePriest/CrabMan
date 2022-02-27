@@ -319,6 +319,7 @@ public class MyPanel extends JPanel implements ActionListener {
             }
             if (pacman.getX() == 1 && pacman.getY() == 9 && pacman.getAngle() == 2) {
                 controllingEnabled = true;
+                canGoToNextLevel = false;
                 System.out.println("Controls enabled");
             }
         }
@@ -350,7 +351,6 @@ public class MyPanel extends JPanel implements ActionListener {
         opponentMove = true;
         noMoreChosenOnes = false;
         opponentWasAlreadyAtTheChosenOne = false;
-        canGoToNextLevel = false;
 
         System.out.println("Reseted");
     }
