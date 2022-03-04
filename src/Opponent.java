@@ -11,11 +11,16 @@ public class Opponent extends Bot {
         this.visible = visible;
     }
 
-    public void goTo(int x, int y) {
+    public void goTo(int x, int y, boolean isPacmanOnSuperMode) {
         this.x = x;
         this.y = y;
 
-        movesDid++;
+        if (!isPacmanOnSuperMode) {
+            movesDid++;
+        }
+        else {
+            movesDid--;
+        }
     }
 
     // Die Getter Methoden (geben den Wert der Variable aus)

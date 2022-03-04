@@ -1,8 +1,9 @@
 import javax.swing.*;
-import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 public class MyPanel extends JPanel implements ActionListener {
     final int LABYRINTH_GRÖßE = 29;
@@ -32,6 +33,9 @@ public class MyPanel extends JPanel implements ActionListener {
     boolean opponentWasAlreadyAtTheChosenOne = false;
     boolean canGoToNextLevel = false;
     boolean controllingEnabled = true;
+    boolean showCoins = true;
+
+    boolean[][] visited = new boolean[LABYRINTH_GRÖßE][LABYRINTH_GRÖßE];
 
     MyPanel() {
         this.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
@@ -87,8 +91,10 @@ public class MyPanel extends JPanel implements ActionListener {
                 for (int j = 0; j < LABYRINTH_GRÖßE; j++) {
                     if (feld.isFieldCoin(0, i, j)) {
                         // Malt die Münzen
-                        g2D.setPaint(Color.yellow);
-                        g2D.fillOval((i + 1) * ZELLEN_GRÖßE + 10, (j + 1) * ZELLEN_GRÖßE + 10, 10, 10);
+                        if (showCoins) {
+                            g2D.setPaint(Color.yellow);
+                            g2D.fillOval((i + 1) * ZELLEN_GRÖßE + 10, (j + 1) * ZELLEN_GRÖßE + 10, 10, 10);
+                        }
 
                     } else if (feld.isFieldWall(0, i, j)) {
                         // Malt die Wände
@@ -97,8 +103,10 @@ public class MyPanel extends JPanel implements ActionListener {
 
                     } else if (feld.isFieldTheChosenOne(0, i, j)) {
                         // Malt eine Münze, die übermalt wird, wenn ein TheChosenOne gemalt wird
-                        g2D.setPaint(Color.yellow);
-                        g2D.fillOval((i + 1) * ZELLEN_GRÖßE + 10, (j + 1) * ZELLEN_GRÖßE + 10, 10, 10);
+                        if (showCoins && !visited[i][j]) {
+                            g2D.setPaint(Color.yellow);
+                            g2D.fillOval((i + 1) * ZELLEN_GRÖßE + 10, (j + 1) * ZELLEN_GRÖßE + 10, 10, 10);
+                        }
 
                         // Malt den TheChosenOne der nach dem SubLevel jetzt angezeigt werden muss
                         if (!noMoreChosenOnes) {
@@ -135,7 +143,12 @@ public class MyPanel extends JPanel implements ActionListener {
 
             // Opponent malen
             if (opponent.getVisible()) {
-                g2D.setPaint(Color.red);
+                if (pacman.getSuperMode()) {
+                    g2D.setPaint(Color.pink);
+                }
+                else {
+                    g2D.setPaint(Color.red);
+                }
                 g2D.fillOval(opponent.getX() * ZELLEN_GRÖßE + 3, opponent.getY() * ZELLEN_GRÖßE + 3, 24, 24);
             }
 
@@ -203,6 +216,7 @@ public class MyPanel extends JPanel implements ActionListener {
                 //System.out.println("A ChosenOne was eaten by Pacman"); zur Überprüfung der Funktion
 
                 pacman.setSuperMode(true);
+                showCoins = false;
             }
         }
 
@@ -227,11 +241,11 @@ public class MyPanel extends JPanel implements ActionListener {
         if (opponent.getVisible() && opponentMove) {
             if (frameCount % opponent.getSpeed() == 0) {
                 try {
-                    opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()));
+                    opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()), pacman.getSuperMode());
                     //System.out.println("Opponent moved to: X: " + pacman.getMovesX(opponent.getMovesDid()) + " Y: " + pacman.getMovesY(opponent.getMovesDid()));
                 } catch (Exception exception) {
                     System.out.println("Error");
-                    opponent.goTo(pacman.getX(), pacman.getY());
+                    opponent.goTo(pacman.getX(), pacman.getY(), pacman.getSuperMode());
                 }
             }
         }
@@ -257,11 +271,12 @@ public class MyPanel extends JPanel implements ActionListener {
                     // Pacman frisst.
                     if (!noMoreChosenOnes) {
                         timer.stop();
+                        pacman.setSuperMode(false);
 
                         while (!(opponent.getX() == maze.getTheChosenOneX(subLevel) + 1 && opponent.getY() == maze.getTheChosenOneY(subLevel) + 1)) {
 
                             if (pacman.getLengthMovesX() - 1 >= opponent.getMovesDid() || pacman.getLengthMovesY() - 1 >= opponent.getMovesDid()) {
-                                opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()));
+                                opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()), pacman.getSuperMode());
                             } else {
                                 opponentWasAlreadyAtTheChosenOne = true;
                             }
@@ -274,7 +289,7 @@ public class MyPanel extends JPanel implements ActionListener {
                         }
                         // System.out.println("Sollte jetzt eigentlich beim TheChosenOne sein der gerade von Pacman gefressen wurde"); zur Überprüfung der Funktion
 
-                        pacman.setSuperMode(false);
+                        showCoins = true;
 
                         subLevel++;
                         opponentWasAlreadyAtTheChosenOne = false;
@@ -287,11 +302,15 @@ public class MyPanel extends JPanel implements ActionListener {
         // Gegner lässt keinen zu großen Vorsprung zu
         distance = pacman.getMovesDid()-opponent.movesDid;
 
-        if (distance < 55) {
-            opponent.setSpeed((int) (11 - (distance / 5)));
+        if (!pacman.getSuperMode()) {
+            if (distance < 55) {
+                opponent.setSpeed((int) (11 - (distance / 5)));
+            } else {
+                opponent.setSpeed(1);
+            }
         }
         else {
-            opponent.setSpeed(1);
+            opponent.setSpeed(13);
         }
 
         // ENDE GEGNER
@@ -311,7 +330,7 @@ public class MyPanel extends JPanel implements ActionListener {
         if (canGoToNextLevel) {
             if (pacman.getX() == 1 && pacman.getY() == 9 && pacman.getAngle() == 4) {
                 controllingEnabled = false;
-                System.out.println("Go go go! go into da next level!");
+                // System.out.println("Go go go! go into da next level!"); zur überprüfung der Funktionsweise
             }
             if (pacman.getX() == -1 && pacman.getY() == 9) {
                 level++;
@@ -320,8 +339,13 @@ public class MyPanel extends JPanel implements ActionListener {
             if (pacman.getX() == 1 && pacman.getY() == 9 && pacman.getAngle() == 2) {
                 controllingEnabled = true;
                 canGoToNextLevel = false;
-                System.out.println("Controls enabled");
+                // System.out.println("Controls enabled"); zur überprüfung der Funktionsweise
             }
+        }
+
+        // Markieren wo schon gewesen
+        if (controllingEnabled) {
+            visited[pacman.getX() - 1][pacman.getY() - 1] = true;
         }
 
         frameCount++;
@@ -352,7 +376,7 @@ public class MyPanel extends JPanel implements ActionListener {
         noMoreChosenOnes = false;
         opponentWasAlreadyAtTheChosenOne = false;
 
-        System.out.println("Reseted");
+        System.out.println("The Programm has been resetet");
     }
 
     // Getter Methoden
