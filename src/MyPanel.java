@@ -26,14 +26,15 @@ public class MyPanel extends JPanel implements ActionListener {
     double distance;
 
     boolean auf = false;
-    boolean move = true;
-    boolean opponentMove = true;
-    boolean gameOver = false;
+    boolean move = false;
+    boolean opponentMove = false;
+    boolean gameOver = true;
     boolean noMoreChosenOnes = false;
     boolean opponentWasAlreadyAtTheChosenOne = false;
     boolean canGoToNextLevel = false;
-    boolean controllingEnabled = true;
-    boolean showCoins = true;
+    boolean controllingEnabled = false;
+    boolean showCoins = false;
+    boolean gameJustStartet = true;
 
     boolean[][] visited = new boolean[LABYRINTH_GRÖßE][LABYRINTH_GRÖßE];
 
@@ -153,16 +154,37 @@ public class MyPanel extends JPanel implements ActionListener {
             }
 
         } else {
-            g2D.setPaint(Color.red);
-            g2D.setFont(new Font("MV Boli", Font.BOLD, 100));
+            if (!gameJustStartet) {
+                // Game Over Screen
 
-            g2D.drawString("GAME OVER!", 130, 470);
+                g2D.setPaint(Color.red);
+                g2D.setFont(new Font("MV Boli", Font.BOLD, 100));
 
-            g2D.setFont(new Font("Calibri", Font.PLAIN, 30));
-            g2D.setPaint(Color.yellow);
+                g2D.drawString("GAME OVER!", 130, 470);
 
-            g2D.drawString("Du hast " + punkte + " Punkte erreicht", 200, 550);
-        } // Game Over screen
+                g2D.setFont(new Font("Calibri", Font.PLAIN, 30));
+                g2D.setPaint(Color.yellow);
+
+                g2D.drawString("Du hast " + punkte + " Punkte erreicht", 200, 550);
+            }
+            else {
+                // Starting Screen
+                g2D.setPaint(Color.green);
+                g2D.setFont(new Font("Calibri", Font.BOLD, 75));
+
+                g2D.drawString("Press S/R to start the Game!", 15, 200);
+
+                g2D.setPaint(Color.yellow);
+
+                g2D.fillArc(150, 350, 300, 300, 45, 270);
+
+                g2D.fillOval(500, 482, 35, 35);
+                g2D.fillOval(650, 482, 35, 35);
+                g2D.fillOval(800, 482, 35, 35);
+
+
+            }
+        }
 
     } // Malt
 
@@ -221,7 +243,7 @@ public class MyPanel extends JPanel implements ActionListener {
         }
 
         // Münzen fressen
-        if (controllingEnabled) {
+        if (controllingEnabled && showCoins) {
             if (feld.isFieldCoin(0, pacman.getX() - 1, pacman.getY() - 1)) {
                 feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
                 punkte++;
@@ -266,7 +288,9 @@ public class MyPanel extends JPanel implements ActionListener {
                     // aktionen um den GameOver screen zu erzeugen
                     gameOver = true;
                     move = false;
+                    showCoins = false;
                     opponentMove = false;
+                    controllingEnabled = false;
                 } else {
                     // Pacman frisst.
                     if (!noMoreChosenOnes) {
@@ -330,7 +354,7 @@ public class MyPanel extends JPanel implements ActionListener {
         if (canGoToNextLevel) {
             if (pacman.getX() == 1 && pacman.getY() == 9 && pacman.getAngle() == 4) {
                 controllingEnabled = false;
-                // System.out.println("Go go go! go into da next level!"); zur überprüfung der Funktionsweise
+                //System.out.println("Controls disabled"); //zur überprüfung der Funktionsweise
             }
             if (pacman.getX() == -1 && pacman.getY() == 9) {
                 level++;
@@ -339,13 +363,15 @@ public class MyPanel extends JPanel implements ActionListener {
             if (pacman.getX() == 1 && pacman.getY() == 9 && pacman.getAngle() == 2) {
                 controllingEnabled = true;
                 canGoToNextLevel = false;
-                // System.out.println("Controls enabled"); zur überprüfung der Funktionsweise
+                //System.out.println("Controls enabled"); //zur überprüfung der Funktionsweise
             }
         }
 
         // Markieren wo schon gewesen
         if (controllingEnabled) {
-            visited[pacman.getX() - 1][pacman.getY() - 1] = true;
+            if (pacman.getX() > 0 && pacman.getX() < 31 && pacman.getY() > 0 && pacman.getY() < 31) {
+                visited[pacman.getX() - 1][pacman.getY() - 1] = true;
+            }
         }
 
         frameCount++;
@@ -375,13 +401,24 @@ public class MyPanel extends JPanel implements ActionListener {
         opponentMove = true;
         noMoreChosenOnes = false;
         opponentWasAlreadyAtTheChosenOne = false;
+        gameOver = false;
+        controllingEnabled = true;
+        showCoins = true;
+        gameJustStartet = false;
 
-        System.out.println("The Programm has been resetet");
+        //System.out.println("The Programm has been resettet"); zur Überprüfung der Funktionsweise
+    }
+
+    public void resetPointCounter() {
+        punkte = 0;
     }
 
     // Getter Methoden
     public boolean isControllingEnabled() {
         return controllingEnabled;
+    }
+    public boolean isGameOver() {
+        return gameOver;
     }
 
     // Setter Methoden

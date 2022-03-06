@@ -54,6 +54,19 @@ public class MyFrame extends JFrame implements KeyListener {
         }
         else {
             panel.setPacmanAngle(3);
+
+            switch (e.getKeyCode()) {
+                case (82): // = 'r'
+                case (83): // = 's'
+                    if (panel.isGameOver()) {
+                        panel.reset();
+                        panel.resetPointCounter();
+                    }
+                    break;
+                case (81):
+                    System.exit(0);
+                    break;
+            }
         }
     }
 

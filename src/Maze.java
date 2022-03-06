@@ -124,7 +124,7 @@ public class Maze {
                     random = (int) (Math.random()*30+1);
                     if (random == 1) {
                         feld.setFieldTheChosenOne(0, bot.getX(), bot.getY());
-                        System.out.println("a chosen one!"); //zur Überprüfung der Funktion
+                        //System.out.println("a chosen one!"); //zur Überprüfung der Funktion
 
                         theChosenOneX.add(theChosenOnesCounter, bot.getX());
                         theChosenOneY.add(theChosenOnesCounter, bot.getY());
