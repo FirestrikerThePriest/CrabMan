@@ -16,12 +16,15 @@ public class MyPanel extends JPanel implements ActionListener {
     Maze maze;
     Pacman pacman;
     Opponent opponent;
+    Music music;
 
     int realAngle;
     int frameCount = 0;
     int punkte = 0;
     int level = 0;
     int subLevel = 0;
+
+    permanentInteger highscore = new permanentInteger();
 
     double distance;
 
@@ -42,6 +45,8 @@ public class MyPanel extends JPanel implements ActionListener {
         this.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         this.setBackground(Color.black); //new Color(100, 65, 164)
         this.setOpaque(true);
+
+        music = new Music();
 
         timer = new Timer(40, this);
         timer.start();
@@ -132,6 +137,7 @@ public class MyPanel extends JPanel implements ActionListener {
 
             // Malt Pacman mit mund auf und zu
             g2D.setPaint(Color.yellow);
+
             if (auf) {
                 g2D.fillArc(pacman.getX() * ZELLEN_GRÖßE + 1, pacman.getY() * ZELLEN_GRÖßE + 1, 28, 28, 45 + realAngle * 90, 270);
             } else {
@@ -166,10 +172,69 @@ public class MyPanel extends JPanel implements ActionListener {
                 g2D.setPaint(Color.yellow);
 
                 g2D.drawString("Du hast " + punkte + " Punkte erreicht", 200, 550);
+                g2D.drawString("Dein Highscore war " + highscore.getValue() + " Punkte", 200, 600);
             }
             else {
                 // Starting Screen
-                g2D.setPaint(Color.green);
+
+                // Labyrinth im Hintergrund
+
+                g2D.setPaint(Color.BLUE);
+                // Malt eine Border um das Labyrinth
+                for (int i = 0; i < LABYRINTH_GRÖßE + 2; i++) {
+                    g2D.fillRect(i * ZELLEN_GRÖßE, 0, ZELLEN_GRÖßE, ZELLEN_GRÖßE);
+                }
+                for (int i = 0; i < LABYRINTH_GRÖßE + 2; i++) {
+                    g2D.fillRect(i * ZELLEN_GRÖßE, PANEL_HEIGHT - ZELLEN_GRÖßE, ZELLEN_GRÖßE, ZELLEN_GRÖßE);
+                }
+                for (int i = 0; i < LABYRINTH_GRÖßE + 2; i++) {
+                    g2D.fillRect(0, i * ZELLEN_GRÖßE, ZELLEN_GRÖßE, ZELLEN_GRÖßE);
+                }
+                for (int i = 0; i < LABYRINTH_GRÖßE + 2; i++) {
+                    g2D.fillRect(PANEL_HEIGHT - ZELLEN_GRÖßE, i * ZELLEN_GRÖßE, ZELLEN_GRÖßE, ZELLEN_GRÖßE);
+                }
+
+                // Erzeugt den Eingang
+                g2D.setPaint(Color.black);
+                g2D.fillRect(0, 270, ZELLEN_GRÖßE, ZELLEN_GRÖßE);
+
+                // Malt das Labyrinth
+                for (int i = 0; i < LABYRINTH_GRÖßE; i++) {
+                    for (int j = 0; j < LABYRINTH_GRÖßE; j++) {
+                        if (feld.isFieldCoin(0, i, j)) {
+                            // Malt die Münzen
+                            if (showCoins) {
+                                g2D.setPaint(Color.yellow);
+                                g2D.fillOval((i + 1) * ZELLEN_GRÖßE + 10, (j + 1) * ZELLEN_GRÖßE + 10, 10, 10);
+                            }
+
+                        } else if (feld.isFieldWall(0, i, j)) {
+                            // Malt die Wände
+                            g2D.setPaint(Color.BLUE);
+                            g2D.fillRect((i + 1) * ZELLEN_GRÖßE, (j + 1) * ZELLEN_GRÖßE, ZELLEN_GRÖßE, ZELLEN_GRÖßE);
+
+                        } else if (feld.isFieldTheChosenOne(0, i, j)) {
+                            // Malt eine Münze, die übermalt wird, wenn ein TheChosenOne gemalt wird
+                            if (showCoins && !visited[i][j]) {
+                                g2D.setPaint(Color.yellow);
+                                g2D.fillOval((i + 1) * ZELLEN_GRÖßE + 10, (j + 1) * ZELLEN_GRÖßE + 10, 10, 10);
+                            }
+
+                            // Malt den TheChosenOne der nach dem SubLevel jetzt angezeigt werden muss
+                            if (!noMoreChosenOnes) {
+                                if (maze.getTheChosenOneX(subLevel) == i && maze.getTheChosenOneY(subLevel) == j) {
+                                    g2D.setPaint(Color.green);
+                                    g2D.fillRect((i + 1) * ZELLEN_GRÖßE, (j + 1) * ZELLEN_GRÖßE, ZELLEN_GRÖßE, ZELLEN_GRÖßE);
+                                }
+                            }
+
+                        }
+                    }
+                }
+
+                // Eigentlicher Startbildschirm
+
+                g2D.setPaint(new Color(56, 255, 0));
                 g2D.setFont(new Font("Calibri", Font.BOLD, 75));
 
                 g2D.drawString("Press S/R to start the Game!", 15, 200);
@@ -181,8 +246,6 @@ public class MyPanel extends JPanel implements ActionListener {
                 g2D.fillOval(500, 482, 35, 35);
                 g2D.fillOval(650, 482, 35, 35);
                 g2D.fillOval(800, 482, 35, 35);
-
-
             }
         }
 
@@ -197,6 +260,11 @@ public class MyPanel extends JPanel implements ActionListener {
         // Nachschauen, ob es noch theChosenOnes gibt, um eine ArrayIndexOutOfBound Exception zu vermeiden
         if (subLevel == maze.getTheChosenOnesCounter()) {
             noMoreChosenOnes = true;
+        }
+        
+        // Gegner flüchtet aus dem Labyrinth
+        if(opponent.getMovesDid() < 1 && pacman.getSuperMode()) {
+            gameOver();
         }
 
         // ENDE ANDERES WICHTIG
@@ -244,9 +312,11 @@ public class MyPanel extends JPanel implements ActionListener {
 
         // Münzen fressen
         if (controllingEnabled && showCoins) {
-            if (feld.isFieldCoin(0, pacman.getX() - 1, pacman.getY() - 1)) {
-                feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
-                punkte++;
+            if (pacman.getX() > 0 && pacman.getX() < 31 && pacman.getY() > 0 && pacman.getX() < 31) {
+                if (feld.isFieldCoin(0, pacman.getX() - 1, pacman.getY() - 1)) {
+                    feld.clearField(0, pacman.getX() - 1, pacman.getY() - 1);
+                    punkte++;
+                }
             }
         }
 
@@ -286,11 +356,7 @@ public class MyPanel extends JPanel implements ActionListener {
                 if (!pacman.getSuperMode()) {
                     // Gegner frisst.
                     // aktionen um den GameOver screen zu erzeugen
-                    gameOver = true;
-                    move = false;
-                    showCoins = false;
-                    opponentMove = false;
-                    controllingEnabled = false;
+                    gameOver();
                 } else {
                     // Pacman frisst.
                     if (!noMoreChosenOnes) {
@@ -374,8 +440,27 @@ public class MyPanel extends JPanel implements ActionListener {
             }
         }
 
+        // Highscore
+        if (highscore.getValue() < punkte) {
+            highscore.setValue(punkte);
+        }
+
+        // Music stoppen
+
+        if (gameOver) {
+            music.stop();
+        }
+
         frameCount++;
         repaint();
+    }
+
+    private void gameOver() {
+        gameOver = true;
+        move = false;
+        showCoins = false;
+        opponentMove = false;
+        controllingEnabled = false;
     }
 
     public void reset() {
@@ -389,6 +474,8 @@ public class MyPanel extends JPanel implements ActionListener {
         pacman.setMovesX(0, 0);
         pacman.setMovesY(0, 9);
         pacman.setSpeed(9);
+
+        music.startFromBeginning();
 
         maze.generate();
         maze.shuffleTheChosenOnes(100);
