@@ -17,6 +17,7 @@ public class MyPanel extends JPanel implements ActionListener {
     Pacman pacman;
     Opponent opponent;
     Music music;
+    Soundeffekte soundeffekte;
 
     int realAngle;
     int frameCount = 0;
@@ -41,12 +42,13 @@ public class MyPanel extends JPanel implements ActionListener {
 
     boolean[][] visited = new boolean[LABYRINTH_GRÖßE][LABYRINTH_GRÖßE];
 
-    MyPanel() {
+    public MyPanel() {
         this.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         this.setBackground(Color.black); //new Color(100, 65, 164)
         this.setOpaque(true);
 
         music = new Music();
+        soundeffekte = new Soundeffekte();
 
         timer = new Timer(40, this);
         timer.start();
@@ -166,7 +168,7 @@ public class MyPanel extends JPanel implements ActionListener {
                 g2D.setPaint(Color.red);
                 g2D.setFont(new Font("MV Boli", Font.BOLD, 100));
 
-                g2D.drawString("GAME OVER!", 130, 470);
+                g2D.drawString("GAME OVER!", 130, 270);
 
                 g2D.setFont(new Font("Calibri", Font.PLAIN, 30));
                 g2D.setPaint(Color.yellow);
@@ -246,6 +248,9 @@ public class MyPanel extends JPanel implements ActionListener {
                 g2D.fillOval(500, 482, 35, 35);
                 g2D.fillOval(650, 482, 35, 35);
                 g2D.fillOval(800, 482, 35, 35);
+
+                g2D.setPaint(new Color(56, 255, 0));
+                g2D.drawString("Dein Highscore war: " + highscore.getValue(), 20, 850);
             }
         }
 
@@ -261,7 +266,7 @@ public class MyPanel extends JPanel implements ActionListener {
         if (subLevel == maze.getTheChosenOnesCounter()) {
             noMoreChosenOnes = true;
         }
-        
+
         // Gegner flüchtet aus dem Labyrinth
         if(opponent.getMovesDid() < 1 && pacman.getSuperMode()) {
             gameOver();
@@ -307,6 +312,7 @@ public class MyPanel extends JPanel implements ActionListener {
 
                 pacman.setSuperMode(true);
                 showCoins = false;
+                soundeffekte.playPowerUpSound();
             }
         }
 
@@ -379,7 +385,9 @@ public class MyPanel extends JPanel implements ActionListener {
                         }
                         // System.out.println("Sollte jetzt eigentlich beim TheChosenOne sein der gerade von Pacman gefressen wurde"); zur Überprüfung der Funktion
 
-                        showCoins = true;
+                        if (!noMoreChosenOnes) {
+                            showCoins = true;
+                        }
 
                         subLevel++;
                         opponentWasAlreadyAtTheChosenOne = false;
@@ -416,7 +424,6 @@ public class MyPanel extends JPanel implements ActionListener {
         }
 
         // Ins nächste Level gehen
-
         if (canGoToNextLevel) {
             if (pacman.getX() == 1 && pacman.getY() == 9 && pacman.getAngle() == 4) {
                 controllingEnabled = false;
@@ -446,7 +453,6 @@ public class MyPanel extends JPanel implements ActionListener {
         }
 
         // Music stoppen
-
         if (gameOver) {
             music.stop();
         }
@@ -455,12 +461,15 @@ public class MyPanel extends JPanel implements ActionListener {
         repaint();
     }
 
-    private void gameOver() {
+    public void gameOver() {
         gameOver = true;
         move = false;
         showCoins = false;
         opponentMove = false;
         controllingEnabled = false;
+
+        //Soundeffekt
+        soundeffekte.playGameOverSound();
     }
 
     public void reset() {

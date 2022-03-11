@@ -34,22 +34,11 @@ public class MyFrame extends JFrame implements KeyListener {
         if (panel.isControllingEnabled()) {
             panel.setMove(true);
             switch (e.getKeyCode()) {
-                case (38):
-                case (87):
-                    panel.setPacmanAngle(1);
-                    break;
-                case (39):
-                case (68):
-                    panel.setPacmanAngle(2);
-                    break;
-                case (40):
-                case (83):
-                    panel.setPacmanAngle(3);
-                    break;
-                case (37):
-                case (65):
-                    panel.setPacmanAngle(4);
-                    break;
+                case (38), (87) -> panel.setPacmanAngle(1);
+                case (39), (68) -> panel.setPacmanAngle(2);
+                case (40), (83) -> panel.setPacmanAngle(3);
+                case (37), (65) -> panel.setPacmanAngle(4);
+                case (75), (88) -> panel.gameOver();
             }
         }
         else {
