@@ -39,6 +39,7 @@ public class MyFrame extends JFrame implements KeyListener {
                 case (40), (83) -> panel.setPacmanAngle(3);
                 case (37), (65) -> panel.setPacmanAngle(4);
                 case (75), (88) -> panel.gameOver();
+                case (77) -> panel.mute();
             }
         }
         else {

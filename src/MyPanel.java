@@ -506,6 +506,28 @@ public class MyPanel extends JPanel implements ActionListener {
         punkte = 0;
     }
 
+    public void mute() {
+        if (music.isReactOnMute()) {
+            if (music.isMusicRunning()) {
+                music.stop();
+            } else {
+                music.startFromBeginning();
+            }
+
+            music.setReactOnMute(false);
+
+            new Thread(()-> {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                music.setReactOnMute(true);
+            }).start();
+        }
+    }
+
     // Getter Methoden
     public boolean isControllingEnabled() {
         return controllingEnabled;
