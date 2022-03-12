@@ -265,6 +265,7 @@ public class MyPanel extends JPanel implements ActionListener {
         // Nachschauen, ob es noch theChosenOnes gibt, um eine ArrayIndexOutOfBound Exception zu vermeiden
         if (subLevel == maze.getTheChosenOnesCounter()) {
             noMoreChosenOnes = true;
+            showCoins = false;
         }
 
         // Gegner flüchtet aus dem Labyrinth
@@ -384,10 +385,6 @@ public class MyPanel extends JPanel implements ActionListener {
 
                         }
                         // System.out.println("Sollte jetzt eigentlich beim TheChosenOne sein der gerade von Pacman gefressen wurde"); zur Überprüfung der Funktion
-
-                        if (!noMoreChosenOnes) {
-                            showCoins = true;
-                        }
 
                         subLevel++;
                         opponentWasAlreadyAtTheChosenOne = false;
