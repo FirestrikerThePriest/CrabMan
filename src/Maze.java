@@ -121,7 +121,7 @@ public class Maze {
                 feld.setVisited(0, bot.getX(), bot.getY(), true);
 
                 if (!backtracking && movesWithoutBacktracking > 3) {
-                    random = (int) (Math.random()*30+1);
+                    random = (int) (Math.random()*10+1);
                     if (random == 1) {
                         feld.setFieldTheChosenOne(0, bot.getX(), bot.getY());
                         //System.out.println("a chosen one!"); //zur Überprüfung der Funktion

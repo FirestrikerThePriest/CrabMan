@@ -343,7 +343,7 @@ public class MyPanel extends JPanel implements ActionListener {
                     opponent.goTo(pacman.getMovesX(opponent.getMovesDid()), pacman.getMovesY(opponent.getMovesDid()), pacman.getSuperMode());
                     //System.out.println("Opponent moved to: X: " + pacman.getMovesX(opponent.getMovesDid()) + " Y: " + pacman.getMovesY(opponent.getMovesDid()));
                 } catch (Exception exception) {
-                    System.out.println("Error");
+                    System.out.println("Error ja bau endlich das hier um du fauler Sack!");
                     opponent.goTo(pacman.getX(), pacman.getY(), pacman.getSuperMode());
                 }
             }
@@ -370,6 +370,7 @@ public class MyPanel extends JPanel implements ActionListener {
                         timer.stop();
                         pacman.setSuperMode(false);
 
+                        // Gegner bewegt sich auf Postion des zuletzt gefressenen TheChosenOnes
                         while (!(opponent.getX() == maze.getTheChosenOneX(subLevel) + 1 && opponent.getY() == maze.getTheChosenOneY(subLevel) + 1)) {
 
                             if (pacman.getLengthMovesX() - 1 >= opponent.getMovesDid() || pacman.getLengthMovesY() - 1 >= opponent.getMovesDid()) {
@@ -388,6 +389,7 @@ public class MyPanel extends JPanel implements ActionListener {
 
                         subLevel++;
                         opponentWasAlreadyAtTheChosenOne = false;
+                        showCoins = true;
                         timer.start();
                     }
                 }
@@ -518,12 +520,13 @@ public class MyPanel extends JPanel implements ActionListener {
 
             new Thread(()-> {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(400);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
                 music.setReactOnMute(true);
+                // herr Ehrlich, das ist der code: 11554
             }).start();
         }
     }
