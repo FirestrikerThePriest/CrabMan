@@ -392,6 +392,8 @@ public class MyPanel extends JPanel implements ActionListener {
                         showCoins = true;
                         timer.start();
                     }
+
+                    punkte += 50;
                 }
             }
         }
